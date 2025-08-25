@@ -60,6 +60,34 @@ app.post('/upload-data', async (req, res) => {
   res.status(201).json({ message: `Inserted ${req.body.length} tournaments!` });
 });
 
+// POST /tournaments/:id/participants
+app.post('/registrar/:id', async (req, res) => {
+    const { id } = req.params; // ID del torneo
+    const newRegistro = req.body; // debe ser un array de objetos
+
+    // Validar que el body sea un array
+    if (!Array.isArray(newRegistro)) {
+      return res.status(400).json({ error: "El body debe ser un array de participantes." });
+    }
+
+    // Insertar en el roster usando $push con $each
+    const updatedTournament = await Tournament.findByIdAndUpdate(
+      id,
+      { $push: { roster: { $each: newRegistro } } },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedTournament) {
+      return res.status(404).json({ error: "Torneo no encontrado." });
+    }
+
+    res.status(200).json({
+      message: `Se agregaron ${newRegistro.length} participantes.`,
+      roster: updatedTournament.roster
+    });
+
+});
+
 app.get('/fetch-tournaments', async (req, res) => {
   const tournaments = await Tournament.find();
   res.status(200).json(tournaments);
