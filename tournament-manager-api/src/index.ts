@@ -1,5 +1,6 @@
 import express from "express";
 import mongoose, { model, Schema } from "mongoose";
+import { Kafka } from 'kafkajs';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -50,42 +51,25 @@ const tournamentSchema = new Schema(
 
 const Tournament = model("Tournament", tournamentSchema);
 
+const kafka = new Kafka({ brokers: ['localhost:9092'] });
+
+const producer = kafka.producer();
 
 app.post('/upload-data', async (req, res) => {
   const data = req.body;
   // Here you would handle the data upload logic
   console.log("Data received:", data);
 
+  await producer.connect();
+  await producer.send({
+    topic: 'mi-topic',
+    messages: data,
+  });
+  console.log('Mensaje enviado a Kafka');
+  await producer.disconnect();
+
   await Tournament.insertMany(req.body);
   res.status(201).json({ message: `Inserted ${req.body.length} tournaments!` });
-});
-
-// POST /tournaments/:id/participants
-app.post('/registrar/:id', async (req, res) => {
-    const { id } = req.params; // ID del torneo
-    const newRegistro = req.body; // debe ser un array de objetos
-
-    // Validar que el body sea un array
-    if (!Array.isArray(newRegistro)) {
-      return res.status(400).json({ error: "El body debe ser un array de participantes." });
-    }
-
-    // Insertar en el roster usando $push con $each
-    const updatedTournament = await Tournament.findByIdAndUpdate(
-      id,
-      { $push: { roster: { $each: newRegistro } } },
-      { new: true, runValidators: true }
-    );
-
-    if (!updatedTournament) {
-      return res.status(404).json({ error: "Torneo no encontrado." });
-    }
-
-    res.status(200).json({
-      message: `Se agregaron ${newRegistro.length} participantes.`,
-      roster: updatedTournament.roster
-    });
-
 });
 
 app.get('/fetch-tournaments', async (req, res) => {
