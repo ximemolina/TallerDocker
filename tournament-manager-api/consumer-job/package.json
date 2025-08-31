@@ -1,5 +1,5 @@
 {
-  "name": "kafka-consumer-job",
+  "name": "consumer-job",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {

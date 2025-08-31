@@ -36,13 +36,14 @@ services:
     ports:
       - "2181:2181"
     networks:
-    - internal_net
+      - internal_net
 
 
   kafka:
     image: confluentinc/cp-kafka:7.2.1
     depends_on:
       - zookeeper
+      - api
     ports:
       - "9092:9092"
     networks:
@@ -52,7 +53,8 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092\
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_ADVERTISED_HOST_NAME: kafka
+    networks:
+      - internal_net
 
   consumer-job:
     build: ./consumer-job

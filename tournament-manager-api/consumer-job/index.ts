@@ -9,12 +9,12 @@ const consumer = kafka.consumer({ groupId: "tournament-group" });
 
 async function run() {
   await consumer.connect();
-  await consumer.subscribe({ topic: "tournaments", fromBeginning: true });
+  await consumer.subscribe({ topic: "mi-topic", fromBeginning: true });
 
   await consumer.run({
     eachMessage: async ({ topic, partition, message }) => {
       const value = message.value?.toString();
-      console.log(`Consumed message: ${value}`);
+      console.log(`Registros encolados: ${value}`);
     },
   });
 
