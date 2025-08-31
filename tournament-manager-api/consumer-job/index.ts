@@ -14,7 +14,7 @@ async function run() {
   await consumer.run({
     eachMessage: async ({ topic, partition, message }) => {
       const value = message.value?.toString();
-      console.log(`Consumed message: ${value}`);
+      console.log(`Registros encolados: ${value}`);
     },
   });
 
