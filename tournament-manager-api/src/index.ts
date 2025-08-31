@@ -51,25 +51,41 @@ const tournamentSchema = new Schema(
 
 const Tournament = model("Tournament", tournamentSchema);
 
-const kafka = new Kafka({ brokers: ['localhost:9092'] });
+const kafka = new Kafka({ brokers: ['kafka:9092'] });
 
 const producer = kafka.producer();
 
+(async () => {
+  try {
+    await producer.connect();
+    console.log("✅ Kafka producer conectado");
+  } catch (err) {
+    console.error("❌ Error conectando el producer:", err);
+  }
+})();
+
 app.post('/upload-data', async (req, res) => {
   const data = req.body;
-  // Here you would handle the data upload logic
-  console.log("Data received:", data);
 
-  await producer.connect();
-  await producer.send({
-    topic: 'mi-topic',
-    messages: data,
-  });
-  console.log('Mensaje enviado a Kafka');
-  await producer.disconnect();
+  if (!Array.isArray(data)) {
+    return res.status(400).json({ error: "El cuerpo debe ser un array de torneos." });
+  }
 
-  await Tournament.insertMany(req.body);
-  res.status(201).json({ message: `Inserted ${req.body.length} tournaments!` });
+  try {
+    await producer.send({
+      topic: 'mi-topic',
+      messages: data.map(item => ({ value: JSON.stringify(item) }))
+    });
+    console.log(`✅ Se encolaron ${data.length} torneos en Kafka`);
+
+    const inserted = await Tournament.insertMany(data);
+    console.log(`✅ Se insertaron ${inserted.length} torneos en MongoDB`);
+
+    res.status(201).json({ message: `Se insertaron ${inserted.length} torneos.` });
+  } catch (err) {
+    console.error("❌ Error en /upload-data:", err);
+    res.status(500).json({ error: "Error interno al procesar los datos." });
+  }
 });
 
 app.get('/fetch-tournaments', async (req, res) => {
