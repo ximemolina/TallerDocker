@@ -42,6 +42,7 @@ services:
     image: confluentinc/cp-kafka:7.2.1
     depends_on:
       - zookeeper
+      - api
     ports:
       - "9092:9092"
     environment:
