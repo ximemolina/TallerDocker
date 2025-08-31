@@ -52,6 +52,13 @@ services:
     networks:
       - internal_net
 
+  consumer-job:
+    build: ./consumer-job
+    depends_on:
+      - kafka
+    networks:
+      - internal_net
+
 volumes:
   mongo_data:
 

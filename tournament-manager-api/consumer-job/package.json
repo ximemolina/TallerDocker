@@ -1,0 +1,13 @@
+{
+  "name": "consumer-job",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node index.ts"
+  },
+  "dependencies": {
+    "kafkajs": "^2.2.4",
+    "typescript": "^4.0.0",
+    "ts-node": "^10.0.0"
+  }
+}
